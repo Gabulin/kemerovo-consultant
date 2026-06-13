@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: kemerovo-lgoty
+    runtime: docker
+    plan: free
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
