@@ -15,7 +15,20 @@ import os, re, math, json, datetime
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from groq import Groq
+
+# Основной провайдер — Google Gemini (google-genai SDK, актуальный с мая 2025)
+# Резервный провайдер — Groq (при 429 или ошибке Gemini)
+try:
+    from google import genai as google_genai
+    GEMINI_AVAILABLE = True
+except ImportError:
+    GEMINI_AVAILABLE = False
+
+try:
+    from groq import Groq
+    GROQ_AVAILABLE = True
+except ImportError:
+    GROQ_AVAILABLE = False
 
 app = FastAPI()
 
@@ -332,13 +345,99 @@ def log_interaction(message, kind, n_chunks, profile):
     except Exception:
         pass
 
+def call_gemini(messages: list, system: str) -> str:
+    """Вызов Google Gemini (google-genai SDK). Основной провайдер."""
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    if not api_key or not GEMINI_AVAILABLE:
+        raise RuntimeError("GEMINI_API_KEY не задан или google-genai не установлен")
+
+    client = google_genai.Client(api_key=api_key)
+
+    # Собираем историю в формат Gemini (role: user/model)
+    contents = []
+    for msg in messages:
+        role = msg["role"]
+        if role == "system":
+            continue  # system идёт отдельно
+        gemini_role = "model" if role == "assistant" else "user"
+        contents.append({"role": gemini_role, "parts": [{"text": msg["content"]}]})
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=contents,
+        config={
+            "system_instruction": system,
+            "temperature": 0.2,
+            "max_output_tokens": 1400,
+        }
+    )
+    return response.text
+
+
+def call_groq(messages: list) -> str:
+    """Вызов Groq Llama. Резервный провайдер."""
+    api_key = os.environ.get("GROQ_API_KEY", "")
+    if not api_key or not GROQ_AVAILABLE:
+        raise RuntimeError("GROQ_API_KEY не задан или groq не установлен")
+
+    client = Groq(api_key=api_key)
+    resp = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=messages,
+        temperature=0.2,
+        max_tokens=1400,
+        top_p=0.9,
+    )
+    return resp.choices[0].message.content
+
+
+def call_llm(messages: list, system: str) -> str:
+    """
+    Двухуровневый вызов LLM:
+    1. Пробуем Gemini (основной — стабильнее на защите)
+    2. При ошибке/rate-limit — автоматически переключаемся на Groq
+    """
+    gemini_key = os.environ.get("GEMINI_API_KEY", "")
+    groq_key = os.environ.get("GROQ_API_KEY", "")
+
+    # Нет ни одного ключа — честное сообщение
+    if not gemini_key and not groq_key:
+        return ("⚠️ Не задан ни один API-ключ. Добавьте в Render:\n"
+                "• GEMINI_API_KEY (получить: aistudio.google.com)\n"
+                "• GROQ_API_KEY (резерв: console.groq.com)")
+
+    # Пробуем Gemini если ключ есть
+    if gemini_key and GEMINI_AVAILABLE:
+        try:
+            return call_gemini(messages, system)
+        except Exception as e:
+            err = str(e)
+            # 429 или quota — сразу на резерв, не показывая ошибку пользователю
+            if any(x in err.lower() for x in ("429", "quota", "rate", "resource_exhausted")):
+                print(f"[Gemini] rate limit, переключаюсь на Groq: {err[:80]}")
+                # fallthrough к Groq ниже
+            else:
+                print(f"[Gemini] ошибка: {err[:150]}")
+                # Нефатальная ошибка — тоже пробуем Groq
+                pass
+
+    # Groq как резерв
+    if groq_key and GROQ_AVAILABLE:
+        try:
+            return call_groq(messages)
+        except Exception as e:
+            err = str(e)
+            if "rate_limit" in err.lower():
+                return "⏳ Оба сервиса временно перегружены. Подождите 30 секунд и повторите."
+            if any(x in err.lower() for x in ("invalid_api_key", "authentication", "auth")):
+                return "⚠️ Неверный GROQ_API_KEY. Проверьте ключ в Render Environment."
+            return f"⚠️ Ошибка резервного провайдера: {err[:150]}"
+
+    return "⚠️ Не удалось подключиться ни к одному провайдеру. Проверьте ключи."
+
 
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
-    api_key = os.environ.get("GROQ_API_KEY", "")
-    if not api_key:
-        return {"answer": "⚠️ GROQ_API_KEY не задан. Добавьте переменную окружения на Render."}
-
     kind = classify(req.message)
     income_low = parse_income(req.profile)
     profile_block = build_profile_block(req.profile)
@@ -371,9 +470,7 @@ async def chat(req: ChatRequest):
 
     log_interaction(req.message, kind, n_chunks, req.profile)
 
-    # Профиль кладём в SYSTEM (приоритет над историей) — решает конфликт профиль↔история
     system_full = SYSTEM + "\n\n# ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ\n" + profile_block
-
     messages = [{"role": "system", "content": system_full}]
     for pair in req.history[-3:]:
         if pair.get("user"):
@@ -383,23 +480,8 @@ async def chat(req: ChatRequest):
     messages.append({"role": "user",
                      "content": f"КОНТЕКСТ ИЗ БАЗЫ ЗНАНИЙ:\n{context}\n\nВОПРОС: {req.message}"})
 
-    try:
-        client = Groq(api_key=api_key)
-        resp = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=messages,
-            temperature=0.2,          # снижено для фактологической точности
-            max_tokens=1400,
-            top_p=0.9,
-        )
-        return {"answer": resp.choices[0].message.content}
-    except Exception as e:
-        err = str(e)
-        if "rate_limit" in err.lower():
-            return {"answer": "⏳ Слишком много запросов сейчас. Подождите минуту, пожалуйста."}
-        if "invalid_api_key" in err.lower() or "authentication" in err.lower():
-            return {"answer": "⚠️ Неверный GROQ_API_KEY."}
-        return {"answer": f"⚠️ Техническая ошибка: {err[:150]}"}
+    answer = call_llm(messages, system_full)
+    return {"answer": answer}
 
 
 @app.get("/health")
