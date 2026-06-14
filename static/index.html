@@ -473,6 +473,75 @@ document.getElementById('clear-btn').onclick = clearChat;
 // История
 let history = [];
 
+// Рендеринг текста бота: markdown-ссылки, голые домены, телефоны, **жирный**
+const KNOWN_DOMAINS = 'gosuslugi\\.ru|nalog\\.gov\\.ru|dsznko\\.ru|sfr\\.gov\\.ru|вкузбассе\\.рф|спроси\\.дом\\.рф|вправе\\.рф|gosurburo\\.kemobl\\.ru';
+function renderRich(text) {
+  let s = String(text)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // 1. markdown-ссылки [текст](url) — защищаем плейсхолдером
+  const links = [];
+  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|[^\s)]+\.[a-zа-яё]{2,}[^\s)]*)\)/gi, (m, t, u) => {
+    const href = u.startsWith('http') ? u : 'https://' + u;
+    links.push(`<a href="${href}" target="_blank" rel="noopener">${t}</a>`);
+    return `${links.length - 1}`;
+  });
+
+  // 2. голые http(s)-ссылки
+  s = s.replace(/\bhttps?:\/\/[^\s<]+/gi, u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+
+  // 3. известные домены без протокола (не внутри уже созданной ссылки)
+  s = s.replace(new RegExp(`(?<![\\/">=\\wа-яё.])(${KNOWN_DOMAINS})([^\\s<,);]*)`, 'gi'),
+    (m) => `<a href="https://${m}" target="_blank" rel="noopener">${m}</a>`);
+
+  // 4. телефоны +7/8 (3842) XX-XX-XX и 8-800-...
+  s = s.replace(/(?:\+7|\b8)[\s(]*\d{3,4}\)?[\s-]?\d{2,3}[\s-]?\d{2}[\s-]?\d{2}/g, p => {
+    const d = p.replace(/\D/g, '');
+    const tel = d.length === 11 ? '+7' + d.slice(1) : '+' + d;
+    return `<a href="tel:${tel}">${p}</a>`;
+  });
+
+  // 5. **жирный** и переносы строк
+  s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+
+  // 6. возвращаем защищённые markdown-ссылки
+  s = s.replace(/(\d+)/g, (m, i) => links[+i]);
+  return s;
+}
+
+// Сохранение/восстановление профиля и истории
+function saveState() {
+  try {
+    localStorage.setItem('kem_profile', JSON.stringify(getProfile()));
+    localStorage.setItem('kem_history', JSON.stringify(history));
+  } catch (e) {}
+}
+function restoreState() {
+  try {
+    const p = JSON.parse(localStorage.getItem('kem_profile') || 'null');
+    if (p) {
+      const setInput = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+      setInput('f-children', p['Детей']); setInput('f-ages', p['Возраст']); setInput('f-district', p['Район']);
+      const setRadio = (grp, v) => {
+        document.querySelectorAll(`#${grp} .radio-btn`).forEach(b => {
+          b.classList.toggle('active', b.dataset.val === v);
+        });
+      };
+      if (p['Семья']) setRadio('rg-family', p['Семья']);
+      if (p['Доход']) setRadio('rg-income', p['Доход']);
+      if (p['Ипотека']) setRadio('rg-mortgage', p['Ипотека']);
+    }
+    const h = JSON.parse(localStorage.getItem('kem_history') || '[]');
+    if (Array.isArray(h) && h.length) {
+      history = h.slice(-10);
+      history.forEach(pair => {
+        if (pair.user) addMessage('user', pair.user);
+        if (pair.bot)  addMessage('bot', pair.bot);
+      });
+    }
+  } catch (e) {}
+}
+
 function getProfile() {
   const get = id => document.getElementById(id)?.value?.trim() || '';
   const getRadio = id => document.querySelector(`#${id} .radio-btn.active`)?.dataset?.val || '';
@@ -501,12 +570,7 @@ function addMessage(role, text) {
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
 
-  // Простой рендеринг markdown: **bold**, \n -> <br>
-  bubble.innerHTML = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n/g, '<br>');
+  bubble.innerHTML = renderRich(text);
 
   wrap.appendChild(avatar);
   wrap.appendChild(bubble);
@@ -530,7 +594,8 @@ function addTyping() {
 
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
-  bubble.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  bubble.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>'
+    + '<div id="typing-note" style="font-size:12px;color:var(--gray-400);margin-top:4px;"></div>';
 
   wrap.appendChild(avatar);
   wrap.appendChild(bubble);
@@ -538,8 +603,41 @@ function addTyping() {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
+function setTypingNote(text) {
+  const n = document.getElementById('typing-note');
+  if (n) n.textContent = text;
+}
+
 function removeTyping() {
   document.getElementById('typing-indicator')?.remove();
+}
+
+const TIMEOUT_MS = 120000;  // запас на «холодный старт» сервера на Render
+
+// POST с таймаутом и одной тихой повторной попыткой (сервер мог «засыпать»)
+async function postChat(payload, attempt = 1) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+      signal: ctrl.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return data.answer || 'Не удалось получить ответ. Попробуйте переформулировать вопрос.';
+  } catch (e) {
+    clearTimeout(timer);
+    if (attempt < 2) {
+      setTypingNote('Сервер просыпается, это занимает до минуты…');
+      await new Promise(r => setTimeout(r, 3000));
+      return postChat(payload, attempt + 1);
+    }
+    throw e;
+  }
 }
 
 async function sendMessage(text) {
@@ -556,23 +654,20 @@ async function sendMessage(text) {
   addTyping();
 
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        message: msg,
-        history: history,
-        profile: getProfile(),
-      })
-    });
-    const data = await res.json();
+    const answer = await postChat({ message: msg, history: history, profile: getProfile() });
     removeTyping();
-    addMessage('bot', data.answer || 'Нет ответа');
-    history.push({user: msg, bot: data.answer});
+    addMessage('bot', answer);
+    history.push({ user: msg, bot: answer });
     if (history.length > 10) history = history.slice(-10);
-  } catch(e) {
+    saveState();
+  } catch (e) {
     removeTyping();
-    addMessage('bot', '⚠️ Ошибка соединения. Проверьте подключение к интернету.');
+    const bubble = addMessage('bot', '⚠️ Не удалось связаться с сервером. Возможно, он перегружен — ');
+    const retry = document.createElement('a');
+    retry.href = '#'; retry.textContent = 'повторить';
+    retry.style.color = 'var(--green)';
+    retry.onclick = (ev) => { ev.preventDefault(); bubble.closest('.msg').remove(); sendMessage(msg); };
+    bubble.appendChild(retry);
   }
 
   sendBtn.disabled = false;
@@ -581,6 +676,7 @@ async function sendMessage(text) {
 
 function clearChat() {
   history = [];
+  try { localStorage.removeItem('kem_history'); } catch (e) {}
   const msgs = document.getElementById('messages');
   msgs.innerHTML = `
     <div class="empty-state" id="empty">
@@ -590,6 +686,13 @@ function clearChat() {
       «что мне положено», «куда за деньгами», «как получить землю»</p>
     </div>`;
 }
+
+// Сохраняем профиль при изменении полей и восстанавливаем сессию при загрузке
+['f-children', 'f-ages', 'f-district'].forEach(id => {
+  document.getElementById(id)?.addEventListener('change', saveState);
+});
+document.querySelectorAll('.radio-group .radio-btn').forEach(b => b.addEventListener('click', saveState));
+restoreState();
 </script>
 
 </body>
