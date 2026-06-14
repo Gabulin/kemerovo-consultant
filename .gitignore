@@ -1,0 +1,12 @@
+.env
+.env.*
+.venv*/
+__pycache__/
+*.pyc
+test_local.py
+test_battery.py
+test_focus.py
+autotest_ui.py
+autotest_log.txt
+battery_out.txt
+/tmp/
