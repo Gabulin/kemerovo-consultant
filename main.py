@@ -16,8 +16,12 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-# Основной провайдер — Groq (Llama 3.3 70B): быстрый, щедрые лимиты, без обрыва ответов
-# Резервный провайдер — Google Gemini (google-genai SDK, при 429/ошибке Groq)
+# Провайдеры LLM (приоритет по порядку):
+#   1. Groq        — основной (Llama 3.3 70B, быстрый)
+#   2. OpenRouter  — второй резерв (тот же Llama 3.3 70B, при 429 Groq)
+#   3. Gemini      — последний резерв (при исчерпании Groq + OpenRouter)
+import httpx
+
 try:
     from google import genai as google_genai
     GEMINI_AVAILABLE = True
@@ -425,11 +429,10 @@ def call_gemini(messages: list, system: str) -> str:
 
 
 def call_groq(messages: list) -> str:
-    """Вызов Groq Llama. Резервный провайдер."""
+    """Вызов Groq Llama 3.3 70B — основной провайдер."""
     api_key = os.environ.get("GROQ_API_KEY", "")
     if not api_key or not GROQ_AVAILABLE:
         raise RuntimeError("GROQ_API_KEY не задан или groq не установлен")
-
     client = Groq(api_key=api_key)
     resp = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
@@ -441,46 +444,84 @@ def call_groq(messages: list) -> str:
     return resp.choices[0].message.content
 
 
+def call_openrouter(messages: list) -> str:
+    """Вызов OpenRouter — второй провайдер (при 429 Groq)."""
+    api_key = os.environ.get("OPENROUTER_API_KEY", "")
+    if not api_key:
+        raise RuntimeError("OPENROUTER_API_KEY не задан")
+    resp = httpx.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={"Authorization": f"Bearer {api_key}"},
+        json={
+            "model": "meta-llama/llama-3.3-70b-instruct",
+            "messages": messages,
+            "temperature": 0.2,
+            "max_tokens": 2048,
+        },
+        timeout=60.0,
+    )
+    resp.raise_for_status()
+    content = resp.json()["choices"][0]["message"]["content"]
+    if not content or not content.strip():
+        raise RuntimeError("OpenRouter вернул пустой ответ")
+    return content.strip()
+
+
+_RATE_ERRORS = ("rate_limit", "429", "rate", "too many", "quota", "resource_exhausted")
+_AUTH_ERRORS = ("invalid_api_key", "authentication", "auth", "permission")
+
 def call_llm(messages: list, system: str) -> str:
     """
-    Двухуровневый вызов LLM:
-    1. Пробуем Groq (ОСНОВНОЙ — быстрый, щедрые лимиты, без обрыва ответов)
-    2. При ошибке/rate-limit — автоматически переключаемся на Gemini (резерв)
+    Трёхуровневый вызов LLM:
+    1. Groq        — основной (Llama 3.3 70B)
+    2. OpenRouter  — при 429 / ошибке Groq (тот же Llama 3.3 70B)
+    3. Gemini      — последний резерв
     """
-    groq_key = os.environ.get("GROQ_API_KEY", "")
-    gemini_key = os.environ.get("GEMINI_API_KEY", "")
+    groq_key      = os.environ.get("GROQ_API_KEY", "")
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY", "")
+    gemini_key    = os.environ.get("GEMINI_API_KEY", "")
 
-    # Нет ни одного ключа — честное сообщение
-    if not groq_key and not gemini_key:
+    if not groq_key and not openrouter_key and not gemini_key:
         return ("⚠️ Не задан ни один API-ключ. Добавьте в Render:\n"
-                "• GROQ_API_KEY (основной: console.groq.com)\n"
-                "• GEMINI_API_KEY (резерв: aistudio.google.com)")
+                "• GROQ_API_KEY  (основной: console.groq.com)\n"
+                "• OPENROUTER_API_KEY  (резерв: openrouter.ai)\n"
+                "• GEMINI_API_KEY  (резерв: aistudio.google.com)")
 
-    # Пробуем Groq если ключ есть
+    # 1. Groq
     if groq_key and GROQ_AVAILABLE:
         try:
             return call_groq(messages)
         except Exception as e:
-            err = str(e)
-            if any(x in err.lower() for x in ("rate_limit", "429", "rate", "too many")):
-                print(f"[Groq] rate limit, переключаюсь на Gemini: {err[:80]}")
-                # fallthrough к Gemini ниже
-            elif any(x in err.lower() for x in ("invalid_api_key", "authentication", "auth")):
-                print(f"[Groq] неверный ключ, пробую Gemini: {err[:80]}")
+            err = str(e).lower()
+            if any(x in err for x in _RATE_ERRORS):
+                print(f"[Groq] rate limit → OpenRouter")
+            elif any(x in err for x in _AUTH_ERRORS):
+                print(f"[Groq] ошибка ключа → OpenRouter")
             else:
-                print(f"[Groq] ошибка: {err[:150]}")
+                print(f"[Groq] ошибка: {str(e)[:120]} → OpenRouter")
 
-    # Gemini как резерв
+    # 2. OpenRouter
+    if openrouter_key:
+        try:
+            return call_openrouter(messages)
+        except Exception as e:
+            err = str(e).lower()
+            if any(x in err for x in _RATE_ERRORS):
+                print(f"[OpenRouter] rate limit → Gemini")
+            else:
+                print(f"[OpenRouter] ошибка: {str(e)[:120]} → Gemini")
+
+    # 3. Gemini
     if gemini_key and GEMINI_AVAILABLE:
         try:
             return call_gemini(messages, system)
         except Exception as e:
-            err = str(e)
-            if any(x in err.lower() for x in ("429", "quota", "rate", "resource_exhausted")):
-                return "⏳ Оба сервиса временно перегружены. Подождите 30 секунд и повторите."
-            if any(x in err.lower() for x in ("api key", "permission", "authentication")):
+            err = str(e).lower()
+            if any(x in err for x in _RATE_ERRORS):
+                return "⏳ Все сервисы временно перегружены. Подождите 30 секунд и повторите."
+            if any(x in err for x in _AUTH_ERRORS):
                 return "⚠️ Неверный GEMINI_API_KEY. Проверьте ключ в Render Environment."
-            return f"⚠️ Ошибка резервного провайдера: {err[:150]}"
+            return f"⚠️ Ошибка: {str(e)[:150]}"
 
     return "⚠️ Не удалось подключиться ни к одному провайдеру. Проверьте ключи."
 
