@@ -1,0 +1,9 @@
+# Единые переносы строк (LF) для текстовых файлов — без CRLF-шума на Windows
+* text=auto eol=lf
+*.py   text eol=lf
+*.md   text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.txt  text eol=lf
