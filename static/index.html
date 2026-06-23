@@ -280,11 +280,14 @@
   .msg-bubble p { margin: 0 0 9px; }
   .msg-bubble p:last-child { margin-bottom: 0; }
   .msg-bubble ul { margin: 8px 0; padding-left: 4px; list-style: none; }
-  .msg-bubble li { margin: 6px 0; padding-left: 18px; position: relative; }
-  .msg-bubble li::before {
+  .msg-bubble ul li { margin: 6px 0; padding-left: 18px; position: relative; }
+  .msg-bubble ul li::before {
     content: ''; position: absolute; left: 2px; top: 9px;
     width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
   }
+  .msg-bubble ol { margin: 8px 0; padding-left: 22px; }
+  .msg-bubble ol li { margin: 6px 0; padding-left: 4px; }
+  .msg-bubble ol li::marker { color: var(--accent); font-weight: 600; }
 
   /* Индикатор печатания */
   .typing { display: flex; gap: 5px; align-items: center; padding: 6px 2px; }
@@ -605,15 +608,20 @@ function renderRich(text) {
 
   s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
-  // Списки и абзацы
+  // Списки (маркированные и нумерованные) и абзацы
   const lines = s.split('\n');
-  let out = '', inList = false;
-  const closeList = () => { if (inList) { out += '</ul>'; inList = false; } };
+  let out = '', listType = null;
+  const closeList = () => { if (listType) { out += listType === 'ul' ? '</ul>' : '</ol>'; listType = null; } };
   for (let raw of lines) {
     const line = raw.trim();
-    if (/^[•\-*]\s+/.test(line)) {
-      if (!inList) { out += '<ul>'; inList = true; }
+    const isBullet = /^[•\-*]\s+/.test(line);
+    const isNumber = /^\d{1,2}[.)]\s+/.test(line);
+    if (isBullet) {
+      if (listType !== 'ul') { closeList(); out += '<ul>'; listType = 'ul'; }
       out += `<li>${line.replace(/^[•\-*]\s+/, '')}</li>`;
+    } else if (isNumber) {
+      if (listType !== 'ol') { closeList(); out += '<ol>'; listType = 'ol'; }
+      out += `<li>${line.replace(/^\d{1,2}[.)]\s+/, '')}</li>`;
     } else if (line === '') {
       closeList();
     } else {
