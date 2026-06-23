@@ -3,171 +3,234 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Льготы многодетным — Кемерово</title>
+<title>Льготы многодетным семьям — Кемерово и Кузбасс</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
   :root {
-    --green: #1a9e6e;
-    --green-light: #e8f7f1;
-    --green-dark: #147a55;
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-400: #9ca3af;
-    --gray-600: #4b5563;
-    --gray-800: #1f2937;
-    --white: #ffffff;
-    --shadow: 0 1px 3px rgba(0,0,0,0.1);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-    --radius: 12px;
-    --radius-sm: 8px;
+    /* Фирменный цвет — спокойный, «доверительный» зелёно-бирюзовый */
+    --brand:      #0e7c66;
+    --brand-600:  #0c6a58;
+    --brand-700:  #094f43;
+    --brand-50:   #eef6f3;
+    --brand-100:  #d7ece5;
+
+    /* Тёплые нейтральные тона */
+    --bg:        #f3f5f4;
+    --surface:   #ffffff;
+    --line:      #e4e8e6;
+    --line-soft: #eef1f0;
+    --text:      #17211e;
+    --text-2:    #54635e;
+    --text-3:    #8a958f;
+
+    --danger:    #c0492f;
+
+    --shadow-sm: 0 1px 2px rgba(16,40,34,.05);
+    --shadow:    0 4px 16px rgba(16,40,34,.07);
+    --radius:    14px;
+    --radius-sm: 10px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
+  html, body { height: 100%; }
+
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--gray-50);
-    color: var(--gray-800);
-    height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
     display: flex;
     flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
+
+  ::selection { background: var(--brand-100); }
 
   /* ── Шапка ── */
   header {
-    background: var(--white);
-    border-bottom: 1px solid var(--gray-200);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
     padding: 14px 24px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    box-shadow: var(--shadow);
+    gap: 14px;
     flex-shrink: 0;
   }
-  header .logo {
-    width: 38px; height: 38px;
-    background: var(--green);
-    border-radius: 10px;
+  .brand-mark {
+    width: 40px; height: 40px;
+    background: var(--brand);
+    border-radius: 11px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
+    flex-shrink: 0;
   }
-  header h1 { font-size: 16px; font-weight: 600; line-height: 1.3; }
-  header p  { font-size: 12px; color: var(--gray-400); }
+  .brand-mark svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  header h1 { font-size: 16px; font-weight: 600; line-height: 1.25; letter-spacing: -.01em; }
+  header p  { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
 
   /* ── Основной layout ── */
   .main {
     flex: 1;
     display: flex;
     overflow: hidden;
-    max-width: 1200px;
+    max-width: 1180px;
     width: 100%;
     margin: 0 auto;
-    padding: 16px;
-    gap: 16px;
+    padding: 20px;
+    gap: 20px;
   }
 
   /* ── Левая панель ── */
   .sidebar {
-    width: 280px;
+    width: 300px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     overflow-y: auto;
+    padding-right: 2px;
   }
 
   .card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
+    background: var(--surface);
+    border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 16px;
-    box-shadow: var(--shadow);
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
   }
-  .card h3 {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--gray-600);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 12px;
-  }
+  .card-title { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  .card-sub   { font-size: 12.5px; color: var(--text-3); margin-top: 3px; margin-bottom: 16px; line-height: 1.45; }
 
-  .field { margin-bottom: 10px; }
-  .field label {
-    display: block;
-    font-size: 12px;
-    color: var(--gray-600);
-    margin-bottom: 4px;
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field > label {
+    display: flex; align-items: baseline; gap: 6px;
+    font-size: 12.5px;
+    color: var(--text-2);
+    margin-bottom: 8px;
     font-weight: 500;
   }
-  .field input {
+  .field .hint { font-size: 11.5px; color: var(--text-3); font-weight: 400; }
+
+  /* Поля ввода */
+  .inp {
     width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--gray-200);
+    padding: 9px 12px;
+    border: 1px solid var(--line);
     border-radius: var(--radius-sm);
-    font-size: 13px;
-    color: var(--gray-800);
-    background: var(--gray-50);
-    transition: border-color .15s;
+    font-size: 13.5px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color .15s, box-shadow .15s;
   }
-  .field input:focus {
+  .inp::placeholder { color: var(--text-3); }
+  .inp:focus {
     outline: none;
-    border-color: var(--green);
-    background: var(--white);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-50);
   }
 
-  .radio-group { display: flex; flex-wrap: wrap; gap: 6px; }
-  .radio-group label {
+  /* Чипы-переключатели (состав / доход / ипотека / район) */
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip {
     cursor: pointer;
-    padding: 5px 10px;
-    border: 1px solid var(--gray-200);
-    border-radius: 20px;
-    font-size: 12px;
-    color: var(--gray-600);
-    transition: all .15s;
-    text-transform: none;
-    font-weight: 400;
-    white-space: nowrap;
-  }
-  .radio-group input { display: none; }
-  .radio-group input:checked + span {
-    /* handled via JS class */
-  }
-  .radio-btn {
-    cursor: pointer;
-    padding: 5px 10px;
-    border: 1px solid var(--gray-200);
-    border-radius: 20px;
-    font-size: 12px;
-    color: var(--gray-600);
-    background: var(--white);
+    padding: 7px 13px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-family: inherit;
+    color: var(--text-2);
+    background: var(--surface);
     transition: all .15s;
     white-space: nowrap;
   }
-  .radio-btn.active {
-    background: var(--green);
-    border-color: var(--green);
-    color: var(--white);
+  .chip:hover { border-color: var(--brand); color: var(--brand-700); }
+  .chip.active {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    font-weight: 500;
   }
 
-  /* Быстрые вопросы */
-  .quick-list { display: flex; flex-direction: column; gap: 6px; }
+  /* ── Блок «Дети» ── */
+  .children-count {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--brand-700);
+    background: var(--brand-50);
+    padding: 2px 9px;
+    border-radius: 999px;
+  }
+  .children-list { display: flex; flex-direction: column; gap: 8px; }
+  .child-empty { font-size: 12.5px; color: var(--text-3); padding: 2px 0 4px; }
+  .child-row {
+    display: flex; align-items: center; gap: 9px;
+    animation: slideIn .18s ease;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  .child-row .num {
+    font-size: 12.5px; color: var(--text-2); width: 78px; flex-shrink: 0;
+  }
+  .child-row .age-wrap { position: relative; flex: 1; }
+  .child-row .age-wrap .unit {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 12px; color: var(--text-3); pointer-events: none;
+  }
+  .child-row input { padding-right: 38px; }
+  .child-row input::-webkit-outer-spin-button,
+  .child-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .child-row input[type=number] { -moz-appearance: textfield; }
+  .remove-child {
+    width: 30px; height: 30px; flex-shrink: 0;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--surface); color: var(--text-3);
+    cursor: pointer; font-size: 17px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .remove-child:hover { border-color: var(--danger); color: var(--danger); background: #fdf3f1; }
+
+  .add-child {
+    margin-top: 10px;
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 9px;
+    border: 1px dashed var(--brand-100);
+    border-radius: var(--radius-sm);
+    background: var(--brand-50);
+    color: var(--brand-700);
+    font-size: 13px; font-weight: 500; font-family: inherit;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .add-child:hover { background: var(--brand-100); border-color: var(--brand); }
+  .add-child svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; }
+
+  /* Частые вопросы */
+  .quick-list { display: flex; flex-direction: column; gap: 7px; }
   .quick-btn {
     text-align: left;
-    padding: 8px 10px;
-    border: 1px solid var(--gray-200);
+    padding: 10px 12px;
+    border: 1px solid var(--line);
     border-radius: var(--radius-sm);
-    font-size: 12px;
-    color: var(--gray-600);
-    background: var(--white);
+    font-size: 12.5px;
+    font-family: inherit;
+    color: var(--text-2);
+    background: var(--surface);
     cursor: pointer;
     transition: all .15s;
     line-height: 1.4;
   }
   .quick-btn:hover {
-    border-color: var(--green);
-    color: var(--green-dark);
-    background: var(--green-light);
+    border-color: var(--brand);
+    color: var(--brand-700);
+    background: var(--brand-50);
   }
 
   /* ── Правая панель: чат ── */
@@ -175,8 +238,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: var(--white);
-    border: 1px solid var(--gray-200);
+    background: var(--surface);
+    border: 1px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     overflow: hidden;
@@ -186,150 +249,164 @@
   .chat-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
   }
 
-  /* Заглушка пустого чата */
+  /* Приветственный экран */
   .empty-state {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--gray-400);
     text-align: center;
-    gap: 12px;
-    padding: 40px;
+    gap: 16px;
+    padding: 32px 28px;
+    max-width: 460px;
+    margin: 0 auto;
   }
-  .empty-state .icon { font-size: 48px; }
-  .empty-state p { font-size: 14px; line-height: 1.6; }
+  .empty-state .illus { width: 64px; height: 64px; color: var(--brand); opacity: .92; }
+  .empty-state .illus svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .empty-state h2 { font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -.01em; }
+  .empty-state p { font-size: 13.5px; line-height: 1.6; color: var(--text-2); }
 
   /* Сообщения */
-  .msg { display: flex; gap: 10px; max-width: 85%; }
-  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg { display: flex; gap: 11px; max-width: 88%; }
+  .msg.user { align-self: flex-end; }
   .msg.bot  { align-self: flex-start; }
 
-  .msg-avatar {
-    width: 32px; height: 32px; border-radius: 50%;
+  .bot-avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    background: var(--brand); color: #fff;
     display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex-shrink: 0;
+    font-size: 13px; font-weight: 600;
+    margin-top: 20px;
   }
-  .msg.user .msg-avatar { background: var(--green); }
-  .msg.bot  .msg-avatar { background: var(--gray-100); border: 1px solid var(--gray-200); }
+  .msg-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .msg-name { font-size: 12px; font-weight: 600; color: var(--text-2); padding-left: 2px; }
 
   .msg-bubble {
-    padding: 12px 16px;
+    padding: 13px 16px;
     border-radius: 16px;
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.62;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
   }
   .msg.user .msg-bubble {
-    background: var(--green);
-    color: var(--white);
-    border-bottom-right-radius: 4px;
+    background: var(--brand);
+    color: #fff;
+    border-bottom-right-radius: 5px;
   }
   .msg.bot .msg-bubble {
-    background: var(--gray-50);
-    border: 1px solid var(--gray-200);
-    border-bottom-left-radius: 4px;
-    color: var(--gray-800);
+    background: var(--brand-50);
+    border: 1px solid var(--brand-100);
+    border-bottom-left-radius: 5px;
+    color: var(--text);
   }
-  .msg.bot .msg-bubble strong { color: var(--green-dark); }
-  .msg.bot .msg-bubble br + br { display: block; margin: 4px 0; content: ''; }
+  .msg.bot .msg-bubble strong { color: var(--brand-700); font-weight: 600; }
+  .msg .msg-bubble a { color: var(--brand-700); text-decoration: underline; text-underline-offset: 2px; }
+  .msg.user .msg-bubble a { color: #fff; }
+  .msg-bubble p { margin: 0 0 8px; }
+  .msg-bubble p:last-child { margin-bottom: 0; }
+  .msg-bubble ul { margin: 6px 0; padding-left: 20px; }
+  .msg-bubble li { margin: 3px 0; }
 
   /* Индикатор печатания */
-  .typing { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+  .typing { display: flex; gap: 5px; align-items: center; padding: 6px 2px; }
   .typing span {
     width: 7px; height: 7px; border-radius: 50%;
-    background: var(--gray-400);
-    animation: bounce 1.2s infinite;
+    background: var(--brand);
+    opacity: .55;
+    animation: bounce 1.3s infinite;
   }
-  .typing span:nth-child(2) { animation-delay: .2s; }
-  .typing span:nth-child(3) { animation-delay: .4s; }
+  .typing span:nth-child(2) { animation-delay: .18s; }
+  .typing span:nth-child(3) { animation-delay: .36s; }
   @keyframes bounce {
-    0%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-6px); }
+    0%, 80%, 100% { transform: translateY(0); opacity: .35; }
+    40% { transform: translateY(-5px); opacity: .9; }
   }
+  .typing-note { font-size: 12px; color: var(--text-3); margin-top: 6px; }
 
   /* Поле ввода */
   .chat-input-area {
-    padding: 16px;
-    border-top: 1px solid var(--gray-200);
+    padding: 14px 16px;
+    border-top: 1px solid var(--line);
     display: flex;
     gap: 10px;
     align-items: flex-end;
   }
   .chat-input-area textarea {
     flex: 1;
-    padding: 10px 14px;
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
     font-size: 14px;
     font-family: inherit;
-    color: var(--gray-800);
-    background: var(--gray-50);
+    color: var(--text);
+    background: var(--surface);
     resize: none;
-    min-height: 44px;
-    max-height: 120px;
+    min-height: 46px;
+    max-height: 140px;
     line-height: 1.5;
-    transition: border-color .15s;
+    transition: border-color .15s, box-shadow .15s;
   }
+  .chat-input-area textarea::placeholder { color: var(--text-3); }
   .chat-input-area textarea:focus {
     outline: none;
-    border-color: var(--green);
-    background: var(--white);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-50);
   }
-  .send-btn {
-    width: 44px; height: 44px;
-    background: var(--green);
-    border: none; border-radius: var(--radius-sm);
+  .icon-btn {
+    width: 46px; height: 46px; flex-shrink: 0;
+    border: none; border-radius: 12px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: background .15s;
-    flex-shrink: 0;
+    transition: background .15s, opacity .15s;
   }
-  .send-btn:hover { background: var(--green-dark); }
-  .send-btn:disabled { background: var(--gray-200); cursor: not-allowed; }
-  .send-btn svg { width: 20px; height: 20px; fill: white; }
+  .send-btn { background: var(--brand); }
+  .send-btn:hover { background: var(--brand-600); }
+  .send-btn:disabled { background: var(--line); cursor: not-allowed; }
+  .send-btn svg { width: 20px; height: 20px; fill: #fff; }
+  .clear-btn { background: transparent; border: 1px solid var(--line); }
+  .clear-btn:hover { background: var(--bg); border-color: var(--text-3); }
+  .clear-btn svg { width: 18px; height: 18px; fill: none; stroke: var(--text-3); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-  .clear-btn {
-    font-size: 12px; color: var(--gray-400);
-    background: none; border: none; cursor: pointer;
-    padding: 4px 8px; border-radius: 6px;
-    transition: color .15s;
-    align-self: center;
-  }
-  .clear-btn:hover { color: var(--gray-600); }
-
-  /* Подвал чата */
+  /* Подвал */
   .chat-footer {
-    padding: 8px 16px;
-    font-size: 11px;
-    color: var(--gray-400);
-    border-top: 1px solid var(--gray-200);
+    padding: 11px 16px;
+    font-size: 11.5px;
+    color: var(--text-3);
+    border-top: 1px solid var(--line-soft);
     text-align: center;
+    line-height: 1.5;
   }
-  .chat-footer a { color: var(--green); text-decoration: none; }
+  .chat-footer a { color: var(--brand-700); text-decoration: none; font-weight: 500; }
+  .chat-footer a:hover { text-decoration: underline; }
+  .chat-footer .sep { margin: 0 6px; color: var(--line); }
 
   /* Мобильная адаптация */
-  @media (max-width: 700px) {
-    .main { flex-direction: column; padding: 8px; }
+  @media (max-width: 760px) {
+    .main { flex-direction: column; padding: 12px; gap: 12px; overflow: visible; }
     .sidebar { width: 100%; overflow: visible; }
-    .chat-panel { min-height: 400px; }
-    header { padding: 10px 16px; }
+    .chat-panel { min-height: 60vh; }
+    header { padding: 12px 16px; }
+    .msg { max-width: 95%; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">🏠</div>
+  <div class="brand-mark" aria-hidden="true">
+    <svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/></svg>
+  </div>
   <div>
-    <h1>Льготы для многодетных семей</h1>
-    <p>г. Кемерово — Кузбасс · Актуально на 2026 год</p>
+    <h1>Льготы и выплаты многодетным семьям</h1>
+    <p>Кемерово и Кузбасс — что положено вашей семье и как это оформить</p>
   </div>
 </header>
 
@@ -339,50 +416,57 @@
   <div class="sidebar">
 
     <div class="card">
-      <h3>Профиль семьи</h3>
+      <div class="card-title">Расскажите о семье</div>
+      <div class="card-sub">Несколько ответов — и подсказки станут точнее. Можно ничего не заполнять и просто спросить.</div>
 
       <div class="field">
-        <label>Количество детей</label>
-        <input type="text" id="f-children" placeholder="например: 3">
-      </div>
-      <div class="field">
-        <label>Возраст детей</label>
-        <input type="text" id="f-ages" placeholder="например: 4, 9, 15 лет">
+        <label>Дети <span class="children-count" id="children-count">0</span></label>
+        <div class="children-list" id="children-list"></div>
+        <button class="add-child" id="add-child" type="button">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Добавить ребёнка
+        </button>
       </div>
 
       <div class="field">
         <label>Состав семьи</label>
-        <div class="radio-group" id="rg-family">
-          <button class="radio-btn active" data-val="Полная">Полная</button>
-          <button class="radio-btn" data-val="Неполная">Неполная</button>
+        <div class="chips" id="rg-family">
+          <button class="chip active" type="button" data-val="Полная">Полная</button>
+          <button class="chip" type="button" data-val="Неполная">Один родитель</button>
         </div>
       </div>
 
       <div class="field">
-        <label>Доход на человека<br><small style="color:#9ca3af">(ПМ 2026 = 17 234 ₽)</small></label>
-        <div class="radio-group" id="rg-income">
-          <button class="radio-btn active" data-val="Не знаю">Не знаю</button>
-          <button class="radio-btn" data-val="Выше ПМ">Выше ПМ</button>
-          <button class="radio-btn" data-val="Ниже ПМ">Ниже ПМ</button>
+        <label>Доход на человека <span class="hint">ПМ 2026 — 17 234 ₽</span></label>
+        <div class="chips" id="rg-income">
+          <button class="chip active" type="button" data-val="Не знаю">Не знаю</button>
+          <button class="chip" type="button" data-val="Ниже ПМ">Ниже ПМ</button>
+          <button class="chip" type="button" data-val="Выше ПМ">Выше ПМ</button>
         </div>
       </div>
 
       <div class="field">
-        <label>Есть ипотека?</label>
-        <div class="radio-group" id="rg-mortgage">
-          <button class="radio-btn active" data-val="Нет">Нет</button>
-          <button class="radio-btn" data-val="Да">Да</button>
+        <label>Ипотека</label>
+        <div class="chips" id="rg-mortgage">
+          <button class="chip active" type="button" data-val="Нет">Нет</button>
+          <button class="chip" type="button" data-val="Да">Есть</button>
         </div>
       </div>
 
       <div class="field">
-        <label>Район Кемерово</label>
-        <input type="text" id="f-district" placeholder="Центральный / Ленинский…">
+        <label>Район Кемерова</label>
+        <div class="chips" id="rg-district">
+          <button class="chip" type="button" data-val="Центральный">Центральный</button>
+          <button class="chip" type="button" data-val="Ленинский">Ленинский</button>
+          <button class="chip" type="button" data-val="Заводский">Заводский</button>
+          <button class="chip" type="button" data-val="Рудничный">Рудничный</button>
+          <button class="chip" type="button" data-val="Кировский">Кировский</button>
+        </div>
       </div>
     </div>
 
     <div class="card">
-      <h3>Быстрые вопросы</h3>
+      <div class="card-title" style="margin-bottom:14px;">Частые вопросы</div>
       <div class="quick-list" id="quick-list"></div>
     </div>
 
@@ -392,27 +476,33 @@
   <div class="chat-panel">
     <div class="chat-messages" id="messages">
       <div class="empty-state" id="empty">
-        <div class="icon">💬</div>
-        <p>Заполните профиль семьи и задайте вопрос.<br>
-        Можно писать разговорным языком:<br>
-        «что мне положено», «куда за деньгами», «как получить землю»</p>
+        <div class="illus" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><path d="M8 12a4 4 0 0 1 4-4h24a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H20l-8 7v-7h-0a4 4 0 0 1-4-4z"/><path d="M24 26c-3-2.2-6-4.2-6-7a3 3 0 0 1 6-1 3 3 0 0 1 6 1c0 2.8-3 4.8-6 7z"/></svg>
+        </div>
+        <h2>Здравствуйте! Я Анна, консультант по льготам</h2>
+        <p>Помогу разобраться, какие меры поддержки положены вашей семье в Кемерове и как их оформить — пошагово, с адресами и сроками.<br><br>
+        Заполните данные слева или просто спросите своими словами: «что нам положено», «как оформить компенсацию на ЖКУ», «куда идти за выплатой на ипотеку».</p>
       </div>
     </div>
 
     <div class="chat-input-area">
       <textarea id="input" rows="1"
-        placeholder="Введите вопрос или выберите из списка слева…"></textarea>
-      <button class="send-btn" id="send-btn" title="Отправить">
-        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+        placeholder="Ваш вопрос о льготах, выплатах и документах…"></textarea>
+      <button class="icon-btn send-btn" id="send-btn" title="Отправить" aria-label="Отправить">
+        <svg viewBox="0 0 24 24"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l11 2-11 2z"/></svg>
       </button>
-      <button class="clear-btn" id="clear-btn" title="Очистить чат">🗑</button>
+      <button class="icon-btn clear-btn" id="clear-btn" title="Очистить диалог" aria-label="Очистить диалог">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7"/></svg>
+      </button>
     </div>
 
     <div class="chat-footer">
-      ⚠️ Консультант работает на основе базы знаний (июнь 2026) и не заменяет официальное обращение.
-      <a href="https://dsznko.ru" target="_blank">dsznko.ru</a> ·
-      СФР: <a href="tel:88001000001">8-800-100-00-01</a> ·
-      УСЗН: <a href="tel:+73842583346">+7 (3842) 58-33-46</a>
+      Справочная консультация — не заменяет официальное обращение. Данные актуальны на 2026 год.<br>
+      <a href="https://dsznko.ru" target="_blank" rel="noopener">dsznko.ru</a>
+      <span class="sep">·</span>
+      СФР <a href="tel:88001000001">8-800-100-00-01</a>
+      <span class="sep">·</span>
+      Соцзащита Кемерова <a href="tel:+73842583346">+7 (3842) 58-33-46</a>
     </div>
   </div>
 
@@ -420,116 +510,207 @@
 
 <script>
 const QUICK = [
-  "Какие льготы положены моей семье?",
+  "Что положено нашей семье?",
   "Как оформить компенсацию 30% на ЖКУ?",
   "Как получить удостоверение многодетной семьи?",
   "Куда обращаться за материнским капиталом?",
-  "Документы для единого пособия?",
-  "Льгота по транспортному налогу?",
-  "Как получить 450 тысяч на ипотеку?",
+  "Какие документы нужны для единого пособия?",
+  "Льгота по транспортному налогу — как оформить?",
+  "Как получить 450 000 ₽ на ипотеку?",
   "Бесплатное питание в школе — как оформить?",
-  "Проездной для школьника?",
-  "Компенсация 50% за учёбу в вузе?",
+  "Проездной для школьника",
+  "Компенсация 50% за учёбу в вузе или колледже",
   "Что такое семейная налоговая выплата?",
-  "Положена ли нам земля или 200 тысяч?",
+  "Положена ли нам земля или 200 000 ₽?",
 ];
 
-// Рендеринг быстрых вопросов
+// ── Частые вопросы ──
 const ql = document.getElementById('quick-list');
 QUICK.forEach(q => {
   const btn = document.createElement('button');
   btn.className = 'quick-btn';
+  btn.type = 'button';
   btn.textContent = q;
   btn.onclick = () => sendMessage(q);
   ql.appendChild(btn);
 });
 
-// Радио-кнопки
-document.querySelectorAll('.radio-group').forEach(group => {
-  group.querySelectorAll('.radio-btn').forEach(btn => {
+// ── Чипы-переключатели (одиночный выбор) ──
+document.querySelectorAll('.chips').forEach(group => {
+  group.querySelectorAll('.chip').forEach(btn => {
     btn.onclick = () => {
-      group.querySelectorAll('.radio-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      if (group.id === 'rg-district' && btn.classList.contains('active')) {
+        // район можно снять повторным кликом
+        btn.classList.remove('active');
+      } else {
+        group.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      saveState();
     };
   });
 });
 
-// Автовысота textarea
+// ── Блок «Дети»: добавление/удаление строк ──
+const childrenList = document.getElementById('children-list');
+const childrenCount = document.getElementById('children-count');
+const addChildBtn = document.getElementById('add-child');
+
+function renderChildrenState() {
+  const rows = childrenList.querySelectorAll('.child-row');
+  childrenCount.textContent = rows.length;
+  // подпись «Ребёнок N»
+  rows.forEach((row, i) => { row.querySelector('.num').textContent = `Ребёнок ${i + 1}`; });
+  // плейсхолдер при отсутствии детей
+  let empty = childrenList.querySelector('.child-empty');
+  if (rows.length === 0) {
+    if (!empty) {
+      empty = document.createElement('div');
+      empty.className = 'child-empty';
+      empty.textContent = 'Пока никого не добавили — нажмите «Добавить ребёнка».';
+      childrenList.appendChild(empty);
+    }
+  } else if (empty) {
+    empty.remove();
+  }
+}
+
+function addChild(age = '', skipSave = false) {
+  const row = document.createElement('div');
+  row.className = 'child-row';
+
+  const num = document.createElement('span');
+  num.className = 'num';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'age-wrap';
+  const inp = document.createElement('input');
+  inp.className = 'inp';
+  inp.type = 'number';
+  inp.min = '0'; inp.max = '30'; inp.step = '1';
+  inp.placeholder = 'возраст';
+  inp.value = age;
+  inp.addEventListener('input', saveState);
+  const unit = document.createElement('span');
+  unit.className = 'unit';
+  unit.textContent = 'лет';
+  wrap.appendChild(inp);
+  wrap.appendChild(unit);
+
+  const rm = document.createElement('button');
+  rm.className = 'remove-child';
+  rm.type = 'button';
+  rm.title = 'Убрать';
+  rm.textContent = '×';
+  rm.onclick = () => { row.remove(); renderChildrenState(); saveState(); };
+
+  row.appendChild(num);
+  row.appendChild(wrap);
+  row.appendChild(rm);
+  childrenList.appendChild(row);
+  renderChildrenState();
+  if (!skipSave) { saveState(); inp.focus(); }
+}
+
+addChildBtn.onclick = () => addChild();
+
+// ── Автовысота textarea + Enter для отправки ──
 const input = document.getElementById('input');
 input.addEventListener('input', () => {
   input.style.height = 'auto';
-  input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+  input.style.height = Math.min(input.scrollHeight, 140) + 'px';
 });
 input.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
 document.getElementById('send-btn').onclick = () => sendMessage();
 document.getElementById('clear-btn').onclick = clearChat;
 
-// История
 let history = [];
 
-// Рендеринг текста бота: markdown-ссылки, голые домены, телефоны, **жирный**
+// ── Рендеринг ответа бота: ссылки, телефоны, **жирный**, списки ──
 const KNOWN_DOMAINS = 'gosuslugi\\.ru|nalog\\.gov\\.ru|dsznko\\.ru|sfr\\.gov\\.ru|вкузбассе\\.рф|спроси\\.дом\\.рф|вправе\\.рф|gosurburo\\.kemobl\\.ru';
+
 function renderRich(text) {
   let s = String(text)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-  // 1. markdown-ссылки [текст](url) — защищаем плейсхолдером
-  const links = [];
+  // Защищаем готовые ссылки/телефоны непечатаемыми маркерами (PUA),
+  // чтобы последующие замены не трогали цифры внутри сумм и номеров.
+  const tokens = [];
+  const stash = html => `${tokens.push(html) - 1}`;
+
+  // 1. markdown-ссылки [текст](url)
   s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|[^\s)]+\.[a-zа-яё]{2,}[^\s)]*)\)/gi, (m, t, u) => {
     const href = u.startsWith('http') ? u : 'https://' + u;
-    links.push(`<a href="${href}" target="_blank" rel="noopener">${t}</a>`);
-    return `${links.length - 1}`;
+    return stash(`<a href="${href}" target="_blank" rel="noopener">${t}</a>`);
   });
-
   // 2. голые http(s)-ссылки
-  s = s.replace(/\bhttps?:\/\/[^\s<]+/gi, u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
-
-  // 3. известные домены без протокола (не внутри уже созданной ссылки)
+  s = s.replace(/\bhttps?:\/\/[^\s<]+/gi, u => stash(`<a href="${u}" target="_blank" rel="noopener">${u}</a>`));
+  // 3. известные домены без протокола
   s = s.replace(new RegExp(`(?<![\\/">=\\wа-яё.])(${KNOWN_DOMAINS})([^\\s<,);]*)`, 'gi'),
-    (m) => `<a href="https://${m}" target="_blank" rel="noopener">${m}</a>`);
-
-  // 4. телефоны +7/8 (3842) XX-XX-XX и 8-800-...
-  s = s.replace(/(?:\+7|\b8)[\s(]*\d{3,4}\)?[\s-]?\d{2,3}[\s-]?\d{2}[\s-]?\d{2}/g, p => {
+    m => stash(`<a href="https://${m}" target="_blank" rel="noopener">${m}</a>`));
+  // 4. телефоны +7/8 (3842) XX-XX-XX и 8-800-…
+  s = s.replace(/(?:\+7|\b8)[\s(\-]*\d{3,4}\)?[\s-]?\d{2,3}[\s-]?\d{2}[\s-]?\d{2}/g, p => {
     const d = p.replace(/\D/g, '');
     const tel = d.length === 11 ? '+7' + d.slice(1) : '+' + d;
-    return `<a href="tel:${tel}">${p}</a>`;
+    return stash(`<a href="tel:${tel}">${p}</a>`);
   });
 
-  // 5. **жирный** и переносы строк
-  s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+  // 5. **жирный**
+  s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
-  // 6. возвращаем защищённые markdown-ссылки
-  s = s.replace(/(\d+)/g, (m, i) => links[+i]);
+  // 6. списки и абзацы по строкам
+  const lines = s.split('\n');
+  let out = '', inList = false;
+  const closeList = () => { if (inList) { out += '</ul>'; inList = false; } };
+  for (let raw of lines) {
+    const line = raw.trim();
+    if (/^[•\-*]\s+/.test(line)) {
+      if (!inList) { out += '<ul>'; inList = true; }
+      out += `<li>${line.replace(/^[•\-*]\s+/, '')}</li>`;
+    } else if (line === '') {
+      closeList();
+    } else {
+      closeList();
+      out += `<p>${raw}</p>`;
+    }
+  }
+  closeList();
+  s = out;
+
+  // 7. возвращаем защищённые ссылки/телефоны
+  s = s.replace(/(\d+)/g, (m, i) => tokens[+i]);
   return s;
 }
 
-// Сохранение/восстановление профиля и истории
+// ── Сохранение / восстановление профиля и истории ──
 function saveState() {
   try {
     localStorage.setItem('kem_profile', JSON.stringify(getProfile()));
     localStorage.setItem('kem_history', JSON.stringify(history));
   } catch (e) {}
 }
+
 function restoreState() {
   try {
     const p = JSON.parse(localStorage.getItem('kem_profile') || 'null');
     if (p) {
-      const setInput = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
-      setInput('f-children', p['Детей']); setInput('f-ages', p['Возраст']); setInput('f-district', p['Район']);
-      const setRadio = (grp, v) => {
-        document.querySelectorAll(`#${grp} .radio-btn`).forEach(b => {
-          b.classList.toggle('active', b.dataset.val === v);
-        });
+      // дети
+      const ages = (p['Возраст'] || '').match(/\d+/g) || [];
+      let count = parseInt(p['Детей'], 10);
+      if (isNaN(count)) count = ages.length;
+      for (let i = 0; i < count; i++) addChild(ages[i] || '', true);
+      // чипы
+      const setChip = (grp, v) => {
+        if (!v) return;
+        document.querySelectorAll(`#${grp} .chip`).forEach(b => b.classList.toggle('active', b.dataset.val === v));
       };
-      if (p['Семья']) setRadio('rg-family', p['Семья']);
-      if (p['Доход']) setRadio('rg-income', p['Доход']);
-      if (p['Ипотека']) setRadio('rg-mortgage', p['Ипотека']);
+      setChip('rg-family', p['Семья']);
+      setChip('rg-income', p['Доход']);
+      setChip('rg-mortgage', p['Ипотека']);
+      if (p['Район']) setChip('rg-district', p['Район']);
     }
     const h = JSON.parse(localStorage.getItem('kem_history') || '[]');
     if (Array.isArray(h) && h.length) {
@@ -540,39 +721,56 @@ function restoreState() {
       });
     }
   } catch (e) {}
+  renderChildrenState();
 }
 
 function getProfile() {
-  const get = id => document.getElementById(id)?.value?.trim() || '';
-  const getRadio = id => document.querySelector(`#${id} .radio-btn.active`)?.dataset?.val || '';
+  const getChip = id => document.querySelector(`#${id} .chip.active`)?.dataset?.val || '';
+  const rows = [...childrenList.querySelectorAll('.child-row')];
+  const ages = rows.map(r => r.querySelector('input').value.trim()).filter(Boolean);
   return {
-    'Детей':   get('f-children'),
-    'Возраст': get('f-ages'),
-    'Семья':   getRadio('rg-family'),
-    'Доход':   getRadio('rg-income'),
-    'Ипотека': getRadio('rg-mortgage'),
-    'Район':   get('f-district'),
+    'Детей':   rows.length ? String(rows.length) : '',
+    'Возраст': ages.length ? ages.join(', ') : '',
+    'Семья':   getChip('rg-family'),
+    'Доход':   getChip('rg-income'),
+    'Ипотека': getChip('rg-mortgage'),
+    'Район':   getChip('rg-district'),
   };
 }
 
+// ── Сообщения ──
 function addMessage(role, text) {
-  const empty = document.getElementById('empty');
-  if (empty) empty.remove();
+  document.getElementById('empty')?.remove();
 
   const msgs = document.getElementById('messages');
   const wrap = document.createElement('div');
   wrap.className = `msg ${role}`;
 
-  const avatar = document.createElement('div');
-  avatar.className = 'msg-avatar';
-  avatar.textContent = role === 'user' ? '👤' : '🤖';
+  if (role === 'bot') {
+    const avatar = document.createElement('div');
+    avatar.className = 'bot-avatar';
+    avatar.textContent = 'А';
+    wrap.appendChild(avatar);
+
+    const col = document.createElement('div');
+    col.className = 'msg-col';
+    const name = document.createElement('div');
+    name.className = 'msg-name';
+    name.textContent = 'Анна';
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.innerHTML = renderRich(text);
+    col.appendChild(name);
+    col.appendChild(bubble);
+    wrap.appendChild(col);
+    msgs.appendChild(wrap);
+    msgs.scrollTop = msgs.scrollHeight;
+    return bubble;
+  }
 
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
-
-  bubble.innerHTML = renderRich(text);
-
-  wrap.appendChild(avatar);
+  bubble.textContent = text;
   wrap.appendChild(bubble);
   msgs.appendChild(wrap);
   msgs.scrollTop = msgs.scrollHeight;
@@ -580,25 +778,30 @@ function addMessage(role, text) {
 }
 
 function addTyping() {
-  const empty = document.getElementById('empty');
-  if (empty) empty.remove();
-
+  document.getElementById('empty')?.remove();
   const msgs = document.getElementById('messages');
   const wrap = document.createElement('div');
   wrap.className = 'msg bot';
   wrap.id = 'typing-indicator';
 
   const avatar = document.createElement('div');
-  avatar.className = 'msg-avatar';
-  avatar.textContent = '🤖';
+  avatar.className = 'bot-avatar';
+  avatar.textContent = 'А';
 
+  const col = document.createElement('div');
+  col.className = 'msg-col';
+  const name = document.createElement('div');
+  name.className = 'msg-name';
+  name.textContent = 'Анна';
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
   bubble.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>'
-    + '<div id="typing-note" style="font-size:12px;color:var(--gray-400);margin-top:4px;"></div>';
+    + '<div class="typing-note" id="typing-note"></div>';
+  col.appendChild(name);
+  col.appendChild(bubble);
 
   wrap.appendChild(avatar);
-  wrap.appendChild(bubble);
+  wrap.appendChild(col);
   msgs.appendChild(wrap);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -607,32 +810,30 @@ function setTypingNote(text) {
   const n = document.getElementById('typing-note');
   if (n) n.textContent = text;
 }
-
 function removeTyping() {
   document.getElementById('typing-indicator')?.remove();
 }
 
-const TIMEOUT_MS = 120000;  // запас на «холодный старт» сервера на Render
+const TIMEOUT_MS = 120000; // запас на «холодный старт» сервера на Render
 
-// POST с таймаутом и одной тихой повторной попыткой (сервер мог «засыпать»)
 async function postChat(payload, attempt = 1) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
       signal: ctrl.signal,
     });
     clearTimeout(timer);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    return data.answer || 'Не удалось получить ответ. Попробуйте переформулировать вопрос.';
+    return data.answer || 'Не получилось разобрать ответ. Попробуйте переформулировать вопрос.';
   } catch (e) {
     clearTimeout(timer);
     if (attempt < 2) {
-      setTypingNote('Сервер просыпается, это занимает до минуты…');
+      setTypingNote('Сервер просыпается — это занимает до минуты…');
       await new Promise(r => setTimeout(r, 3000));
       return postChat(payload, attempt + 1);
     }
@@ -641,12 +842,11 @@ async function postChat(payload, attempt = 1) {
 }
 
 async function sendMessage(text) {
-  const msg = text || input.value.trim();
+  const msg = (text || input.value).trim();
   if (!msg) return;
 
   input.value = '';
   input.style.height = 'auto';
-
   const sendBtn = document.getElementById('send-btn');
   sendBtn.disabled = true;
 
@@ -662,11 +862,11 @@ async function sendMessage(text) {
     saveState();
   } catch (e) {
     removeTyping();
-    const bubble = addMessage('bot', '⚠️ Не удалось связаться с сервером. Возможно, он перегружен — ');
+    const bubble = addMessage('bot', 'Не удалось связаться с сервером — возможно, он перегружен. ');
     const retry = document.createElement('a');
-    retry.href = '#'; retry.textContent = 'повторить';
-    retry.style.color = 'var(--green)';
-    retry.onclick = (ev) => { ev.preventDefault(); bubble.closest('.msg').remove(); sendMessage(msg); };
+    retry.href = '#';
+    retry.textContent = 'Повторить';
+    retry.onclick = ev => { ev.preventDefault(); bubble.closest('.msg').remove(); sendMessage(msg); };
     bubble.appendChild(retry);
   }
 
@@ -677,21 +877,16 @@ async function sendMessage(text) {
 function clearChat() {
   history = [];
   try { localStorage.removeItem('kem_history'); } catch (e) {}
-  const msgs = document.getElementById('messages');
-  msgs.innerHTML = `
+  document.getElementById('messages').innerHTML = `
     <div class="empty-state" id="empty">
-      <div class="icon">💬</div>
-      <p>Заполните профиль семьи и задайте вопрос.<br>
-      Можно писать разговорным языком:<br>
-      «что мне положено», «куда за деньгами», «как получить землю»</p>
+      <div class="illus" aria-hidden="true">
+        <svg viewBox="0 0 48 48"><path d="M8 12a4 4 0 0 1 4-4h24a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H20l-8 7v-7h-0a4 4 0 0 1-4-4z"/><path d="M24 26c-3-2.2-6-4.2-6-7a3 3 0 0 1 6-1 3 3 0 0 1 6 1c0 2.8-3 4.8-6 7z"/></svg>
+      </div>
+      <h2>Чем ещё могу помочь?</h2>
+      <p>Задайте новый вопрос или выберите из списка слева.</p>
     </div>`;
 }
 
-// Сохраняем профиль при изменении полей и восстанавливаем сессию при загрузке
-['f-children', 'f-ages', 'f-district'].forEach(id => {
-  document.getElementById(id)?.addEventListener('change', saveState);
-});
-document.querySelectorAll('.radio-group .radio-btn').forEach(b => b.addEventListener('click', saveState));
 restoreState();
 </script>
 
