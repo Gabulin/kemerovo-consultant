@@ -523,12 +523,19 @@ QUICK.forEach(q => {
   ql.appendChild(btn);
 });
 
-// Segmented controls — одиночный выбор
+// Segmented controls — одиночный выбор (+ доступность)
 document.querySelectorAll('.segmented').forEach(group => {
+  group.setAttribute('role', 'group');
+  const lbl = group.parentElement.querySelector('.lbl');
+  if (lbl) group.setAttribute('aria-label', lbl.textContent.trim());
   group.querySelectorAll('.seg').forEach(btn => {
+    btn.setAttribute('aria-pressed', btn.classList.contains('active') ? 'true' : 'false');
     btn.onclick = () => {
-      group.querySelectorAll('.seg').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      group.querySelectorAll('.seg').forEach(b => {
+        const on = b === btn;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
       saveState();
     };
   });
@@ -685,7 +692,11 @@ function restoreState() {
       for (let i = 0; i < count; i++) addChild(ages[i] || '', true);
       const setSeg = (grp, v) => {
         if (!v) return;
-        document.querySelectorAll(`#${grp} .seg`).forEach(b => b.classList.toggle('active', b.dataset.val === v));
+        document.querySelectorAll(`#${grp} .seg`).forEach(b => {
+          const on = b.dataset.val === v;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
       };
       setSeg('rg-family', p['Семья']);
       setSeg('rg-income', p['Доход']);
