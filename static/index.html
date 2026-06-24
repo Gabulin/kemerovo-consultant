@@ -310,9 +310,15 @@
     border-top: 1px solid var(--line-2);
     text-align: center; line-height: 1.55;
   }
-  .chat-footer a { color: var(--accent-deep); text-decoration: none; font-weight: 500; }
+  .footer-note { margin-bottom: 6px; }
+  .footer-contacts {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 2px 4px;
+  }
+  .footer-contacts b { font-weight: 600; color: var(--ink-2); }
+  .chat-footer a { color: var(--accent-deep); text-decoration: none; font-weight: 600; }
   .chat-footer a:hover { text-decoration: underline; }
-  .chat-footer .sep { margin: 0 7px; color: var(--line); }
+  .chat-footer .sep { margin: 0 5px; color: var(--line); }
 
   /* Доступность: видимый фокус только для клавиатуры */
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
@@ -447,12 +453,20 @@
     </div>
 
     <div class="chat-footer">
-      Справочная консультация — не заменяет официальное обращение.<br>
-      <a href="https://dsznko.ru" target="_blank" rel="noopener">dsznko.ru</a>
-      <span class="sep">·</span>
-      СФР <a href="tel:88001000001">8-800-100-00-01</a>
-      <span class="sep">·</span>
-      Соцзащита Кемерова <a href="tel:+73842583346">+7 (3842) 58-33-46</a>
+      <div class="footer-note">Справочная консультация — не заменяет официальное обращение. Точные суммы и условия уточняйте в ведомстве.</div>
+      <div class="footer-contacts">
+        <span><b>Соцзащита Кузбасса:</b> <a href="https://dsznko.ru" target="_blank" rel="noopener">dsznko.ru</a></span>
+        <span class="sep">·</span>
+        <span><b>СФР:</b> <a href="tel:88001000001">8-800-100-00-01</a></span>
+        <span class="sep">·</span>
+        <span><b>Госуслуги:</b> <a href="tel:88001007010">8-800-100-70-10</a></span>
+        <span class="sep">·</span>
+        <span><b>МФЦ Кемерово:</b> <a href="tel:+73842772179">+7 (3842) 77-21-79</a></span>
+        <span class="sep">·</span>
+        <span><b>Соцзащита Кемерова:</b> <a href="tel:+73842583346">+7 (3842) 58-33-46</a></span>
+        <span class="sep">·</span>
+        <span><b>Детский телефон доверия:</b> <a href="tel:88002000122">8-800-2000-122</a></span>
+      </div>
     </div>
   </div>
 
