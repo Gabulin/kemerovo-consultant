@@ -54,24 +54,67 @@ def load_and_chunk(filepath, chunk_size=800, overlap=150):
         return []
     sections = re.split(r'\n(?=#{1,3} )', text)
     chunks = []
+    parent = ""  # заголовок текущего ## -раздела
     for sec in sections:
         sec = sec.strip()
-        if not sec or len(sec) < 30:
+        if not sec:
             continue
+        first_line = sec.split("\n", 1)[0]
+        if first_line.startswith("## ") and not first_line.startswith("### "):
+            parent = first_line.lstrip("# ").strip()
+        if len(sec) < 30:
+            continue
+        # «Безликий» подраздел («### Документы», «### Условия») без контекста
+        # родителя («Компенсация ЖКУ») не находится поиском — дописываем тему
+        # раздела. Тематическим подзаголовкам префикс не нужен и только шумит.
+        if parent and re.match(
+                r'### (Документы|Услови|Порядок|Пошагов|Способ|Требовани|Сведени|'
+                r'Типичны|Часты|Что важно|Как оформить|Как заполн|Охват|Расчёт|Размер|Кому)',
+                sec):
+            sec = f"[{parent}]\n{sec}"
         if len(sec) <= chunk_size:
             chunks.append(sec)
         else:
+            # Длинный раздел режем на окна. Каждому окну дописываем заголовок
+            # раздела — иначе окно теряет тему («550 000 на ипотеку») и не
+            # находится поиском по ключевым словам.
+            lines = sec.split("\n", 2)
+            if lines[0].startswith("#"):
+                head = lines[0].lstrip("# ").strip()
+            elif lines[0].startswith("[") and len(lines) > 1:
+                # раздел уже получил префикс «[родитель]» — включаем его в тему окна
+                head = lines[0].strip("[]") + " · " + lines[1].lstrip("# ").strip()
+            else:
+                head = ""
             words = sec.split()
             step = max(1, (chunk_size - overlap) // 6)
             wsize = chunk_size // 6
             for i in range(0, len(words), step):
                 part = " ".join(words[i:i + wsize])
                 if len(part) > 50:
+                    if head and i > 0:
+                        part = f"[{head}] {part}"
                     chunks.append(part)
     return chunks
 
+# Лёгкий стеммер: срезает частые русские окончания, чтобы «компенсация /
+# компенсации / компенсацию» и «госуслуги / госуслугах» считались одним токеном.
+# Основа не короче 4 символов — «жку», «сфр», «мфц» не трогаем.
+_SUFFIXES = ("иями", "ями", "ами", "ного", "ному", "ыми", "ими", "его", "ему",
+             "ого", "ому", "ая", "яя", "ой", "ей", "ий", "ый", "ое", "ее",
+             "ую", "юю", "ах", "ях", "ам", "ям", "ом", "ем", "ов", "ев",
+             "ы", "и", "а", "я", "у", "ю", "о", "е", "ь")
+
+def _stem(t):
+    if len(t) <= 4 or t.isdigit():
+        return t
+    for suf in _SUFFIXES:
+        if t.endswith(suf) and len(t) - len(suf) >= 4:
+            return t[:-len(suf)]
+    return t
+
 def tok(text):
-    return re.findall(r'[а-яёa-z0-9]+', text.lower())
+    return [_stem(t) for t in re.findall(r'[а-яёa-z0-9]+', text.lower())]
 
 def build_index(chunks):
     N = len(chunks)
@@ -164,21 +207,49 @@ def followup_query(message, history):
         parts.append((last.get("bot") or "")[:500])
     return " ".join(p for p in parts if p)
 
-def retrieve(query, top_k=6, min_score=0.05):
-    # Расширение запроса: для организационных вопросов добавляем ключи
-    q_expanded = query
-    org_triggers = ("адрес", "телефон", "режим", "мфц", "сфр", "куда идти",
-                    "куда обратиться", "куда обращаться", "где находится", "где получить")
-    if any(t in query.lower() for t in org_triggers):
-        q_expanded = query + " адрес телефон режим работы Кемерово отдел"
+# Тематические расширения запроса: (триггеры, добавляемые слова).
+# Добавляются с ПОНИЖЕННЫМ весом (EXPANSION_W), чтобы подтягивать нужную
+# лексику чанков, не заглушая специфичные слова самого вопроса («550», «ЖКУ»).
+QUERY_EXPANSIONS = (
+    (("адрес", "телефон", "режим", "мфц", "сфр", "куда идти", "куда обратиться",
+      "куда обращаться", "где находится", "где получить"),
+     "адрес телефон режим работы Кемерово отдел"),
+    # без стемминга «госуслуги» и «на Госуслугах» были разными токенами;
+    # со стеммером расширение всё равно полезно — подсказывает лексику форм
+    (("госуслуг", "онлайн", "через интернет", "дистанцион", "электронн",
+      "не выходя из дома", "подать заявление"),
+     "госуслугах онлайн форма form заявление подать ссылки услуга"),
+    (("документ", "справк", "бумаг", "что нужно", "что взять", "перечень",
+      "какие нужны"),
+     "документы перечень заявление паспорт справка свидетельство реквизиты"),
+)
+EXPANSION_W = 0.3
 
-    qt = tok(q_expanded)
+def retrieve(query, top_k=6, min_score=0.05):
+    ql = query.lower()
     qtf = {}
-    for t in qt:
-        qtf[t] = qtf.get(t, 0) + 1
+    for t in tok(query):
+        qtf[t] = qtf.get(t, 0) + 1.0
+    for triggers, extra in QUERY_EXPANSIONS:
+        if any(t in ql for t in triggers):
+            for t in tok(extra):
+                qtf[t] = qtf.get(t, 0) + EXPANSION_W
     total = sum(qtf.values()) or 1
     qvec = {t: (qtf[t] / total) * IDF.get(t, 1) for t in qtf}
-    scores = sorted(enumerate(VECS), key=lambda x: cos(qvec, x[1]), reverse=True)
+
+    # Бонус за совпадение с ЗАГОЛОВКОМ чанка: вопрос «документы на удостоверение»
+    # должен предпочесть раздел «УДОСТОВЕРЕНИЕ → Документы», а не чанки, где
+    # удостоверение лишь упомянуто в списке требуемых документов.
+    qset = {t for t in tok(query) if len(t) > 3}
+
+    def _score(i):
+        s = cos(qvec, VECS[i])
+        if s and qset and HEAD_TOKS[i]:
+            s *= 1 + HEAD_BOOST * len(qset & HEAD_TOKS[i]) / len(qset)
+        return s
+
+    scores = sorted(((i, _score(i)) for i in range(len(CHUNKS))),
+                    key=lambda x: x[1], reverse=True)
 
     # Мета-паттерны которые не несут пользы пользователю
     META_PATTERNS = (
@@ -190,8 +261,7 @@ def retrieve(query, top_k=6, min_score=0.05):
     )
 
     results, seen = [], set()
-    for idx, _ in scores:
-        sc = cos(qvec, VECS[idx])
+    for idx, sc in scores:
         if sc < min_score:
             break
         chunk = CHUNKS[idx]
@@ -221,6 +291,25 @@ for f in KB_FILES:
     print(f"  {f}: {len(c)} чанков")
 print(f"[RAG] Итого: {len(CHUNKS)} чанков")
 IDF, VECS = build_index(CHUNKS)
+# Токены заголовка каждого чанка — для бонуса за совпадение темы.
+# У «оконных» чанков переносов нет, поэтому первую строку брать нельзя:
+# берём префикс [Тема] и/или первые ~100 символов заголовка.
+def _chunk_head(c):
+    if c.startswith("["):
+        end = c.find("]")
+        if end > 0:
+            head = c[1:end]
+            rest = c[end + 1:].lstrip()
+            if rest.startswith("#"):  # «[Родитель]\n### Подраздел»
+                head += " " + rest.split("\n", 1)[0].lstrip("# ").strip()
+            return head
+    first = c.split("\n", 1)[0]
+    if not first.startswith("#"):
+        return ""  # обычный текст без заголовка — бонус не применяем
+    return first.lstrip("# ").strip()[:100]
+
+HEAD_TOKS = [set(t for t in tok(_chunk_head(c)) if len(t) > 3) for c in CHUNKS]
+HEAD_BOOST = 0.6
 print(f"[RAG] Индекс: {len(IDF)} токенов")
 
 # ── Контакты отделов соцвыплат по районам (парсим из базы, единый источник) ──
@@ -719,7 +808,7 @@ async def chat(req: ChatRequest):
             context = "(Вопрос НЕ относится к льготам и соцподдержке. Мягко верни пользователя в тему — ты консультант по льготам для многодетных семей Кемерово. Не отвечай на посторонний вопрос по существу.)"
             n_chunks = 0
         else:
-            rag = retrieve(search_q, top_k=6)
+            rag = retrieve(search_q, top_k=8)
             if not rag:
                 if followup:
                     context = ("(Пользователь продолжает предыдущую тему диалога. Продолжи её по истории "
